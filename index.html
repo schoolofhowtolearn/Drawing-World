@@ -39,6 +39,7 @@ body{margin:0;background:#0b3d78;color:var(--ink);font-family:var(--font);overfl
 .btn.primary:hover{background:var(--accent-deep)}
 .btn.ghost{box-shadow:none;background:rgba(22,50,76,.07)}
 .btn.warn{background:#d9423a;color:#fff}
+#btnSound .mute{display:none}#btnSound[aria-pressed="false"] .mute{display:inline}#btnSound[aria-pressed="false"] .wave{display:none}
 .btn[disabled]{opacity:.45;cursor:default}
 
 .toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);z-index:6;background:#fff;color:var(--ink);
@@ -109,13 +110,14 @@ video{width:100%;border-radius:14px;background:#000;display:block}
     <button class="btn primary" id="btnScan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>えを よみこむ</button>
     <button class="btn" id="btnDemo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>おためし</button>
     <button class="btn" id="btnSheets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg><span class="lbl-long">ぬりえ</span>ようし</button>
+    <button class="btn" id="btnSound" aria-pressed="true" aria-label="おと"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 9c1.5 1.5 1.5 4.5 0 6M18.5 6.5c3 3 3 8 0 11"/><path class="mute" d="M16 9l5 6M21 9l-5 6"/></svg></button>
     <button class="btn" id="btnFull" aria-label="ぜんがめん"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     <button class="btn" id="btnReset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg><span class="lbl-long">リセット</span></button>
   </div>
 </header>
 
 <div class="toast" id="toast"></div>
-<div class="hint" id="hint">いきものを タッチすると びっくりするよ</div>
+<div class="hint" id="hint">いきものを タッチしてみてね。いろんな うごきを するよ</div>
 
 <!-- scan modal -->
 <div class="modal" id="scanModal" hidden>
@@ -433,7 +435,7 @@ function cutPieces(t,src){
    ============================================================ */
 const stage=document.getElementById('stage'),ctx=stage.getContext('2d');
 let W=0,H=0,DPR=1;
-const state={scene:'sea',cr:{sea:[],land:[],sky:[],city:[]},fx:[],amb:{sea:[],land:[],sky:[],city:[]},statics:{},time:0};
+const state={shake:0,scene:'sea',cr:{sea:[],land:[],sky:[],city:[]},fx:[],amb:{sea:[],land:[],sky:[],city:[]},statics:{},time:0};
 function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;stage.width=Math.round(W*DPR);stage.height=Math.round(H*DPR);state.statics={};initAmbient();}
 const baseSize=()=>Math.min(W*1.25,H);
 const rand=(a,b)=>a+Math.random()*(b-a);
@@ -547,19 +549,63 @@ function drawBackFront(sc,dt,T){
   else if(sc==='sky'){moveClouds(A.front,dt,1.6);A.front.forEach(c=>cloud(c.x,c.y,c.s,.55));}
 }
 
+/* ---------- タッチしたときの動き ---------- */
+const ACT={
+ jump:{dur:.95,snd:'boing'}, flip:{dur:1.1,snd:'boing',say:'くるっ！'}, spin:{dur:1.1,snd:'whirl',say:'ぐるぐる〜'},
+ grow:{dur:1.4,snd:'grow',say:'でっかく なった！'}, jelly:{dur:1.1,snd:'jelly',say:'ぷるぷる〜'},
+ dizzy:{dur:2.3,hold:1,snd:'dizzy',say:'くらくら〜'}, dash:{dur:1.4,snd:'zoom',say:'ビューン！'},
+ loop:{dur:1.8,hold:1,snd:'whirl',say:'くるりん！'}, rise:{dur:3,snd:'grow',say:'ふわ〜'},
+ roar:{dur:1.6,hold:1,snd:'roar',say:'ガオー！'}, rear:{dur:1.6,hold:1,snd:'roar',say:'ドスーン！'},
+ spout:{dur:1.8,hold:1,snd:'splash',say:'ぷしゅー！'}, ink:{dur:1.5,snd:'splash',say:'すみ ぷー！'},
+ wheelie:{dur:1.5,snd:'honk',say:'ブッブー！'}, dance:{dur:2.4,hold:1,snd:'dance',say:'ランラン♪'},
+ hearts:{dur:1.8,hold:1,snd:'happy',say:'だいすき！'}
+};
+const ACTS={1:['dash','spin','jump','jelly','grow','hearts'],2:['spout','grow','spin','jelly','jump'],3:['ink','jelly','spin','grow','dizzy'],
+ 4:['roar','jump','flip','dizzy','grow','jelly'],5:['rear','jump','dizzy','grow','hearts'],6:['rear','spout','jump','dizzy','grow'],
+ 7:['loop','spin','dash','grow','hearts'],8:['loop','spin','dash','grow'],9:['rise','spin','jelly','grow'],
+ 10:['wheelie','jump','dash','flip','grow'],11:['wheelie','jump','dash','jelly','grow'],12:['dance','flip','jump','dizzy','hearts','grow']};
+const SAYS={2:{spout:'ぷしゅー！'},5:{rear:'ドスーン！'},6:{rear:'パオーン！',spout:'シャワー！'},11:{wheelie:'プップー！'}};
+const SPOUT={2:[150,28],6:[173,114]};
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+
+function surprise(c){
+  const list=ACTS[c.t_.id]||['jump','spin'];let k;do{k=list[Math.random()*list.length|0];}while(list.length>1&&k===c.lastAct);
+  c.lastAct=k;const d=ACT[k];c.act={k,t:0,dur:d.dur,say:(SAYS[c.t_.id]&&SAYS[c.t_.id][k])||d.say,em:0,done:{}};
+  play(d.snd);
+  if(k==='spin'||k==='grow'||k==='flip')burst(c.x,c.hit?c.hit.y+c.hit.h/2:c.fy*H,'land',false);
+  if(k==='roar')state.shake=.6;
+  if(k==='rise')c.fy=Math.max(.3,c.fy);
+}
+function worldPt(c,lx,ly){if(!c.m)return [c.x,c.fy*H];const p=c.m.transformPoint(new DOMPoint(lx,ly));return [p.x/DPR,p.y/DPR];}
+
 /* ---------- いきものの更新 ---------- */
 function update(c,dt){
   const t=c.t_,m=t.motion,sz=baseSize()*c.size*depthScale(c);c.t+=dt;c.enter=Math.min(1,c.enter+dt*1.4);
-  c.boost=Math.max(0,c.boost-dt*1.5);const sp=c.speed*(1+c.boost*2.2)*(baseSize()/800);
-  if(c.jz>0||c.jv){c.jv-=1400*dt;c.jz+=c.jv*dt;if(c.jz<=0){c.jz=0;c.jv=0;}}
-  if(c.spin>0)c.spin=Math.max(0,c.spin-dt*1.3);
+  c.boost=Math.max(0,c.boost-dt*1.5);
   if(c.enter<1)return;
-  c.x+=c.dir*sp*dt;
+  const a=c.act;let mul=1,hold=false;
+  if(a){a.t+=dt;const p=a.t/a.dur;hold=!!ACT[a.k].hold;
+    if(a.k==='dash')mul=p<.15?.2:6*(1-p)+1;
+    if(a.k==='ink'&&p>.25)mul=5*(1-p)+1;
+    if(a.k==='wheelie')mul=2.2;
+    // 演出の粒
+    a.em+=dt;
+    if(a.k==='spout'&&p<.75&&SPOUT[t.id]){while(a.em>.025){a.em-=.025;const [sx,sy]=worldPt(c,...SPOUT[t.id]);state.fx.push({kind:'drop',x:sx,y:sy,vx:rand(-90,90)+c.dir*(t.id===6?120:0),vy:-rand(320,520)*(baseSize()/800),life:1.4,r:rand(3,6)});}}
+    if(a.k==='ink'&&!a.done.ink){a.done.ink=1;const [ix,iy]=worldPt(c,t.w*.5,t.h*.45);for(let i=0;i<22;i++)state.fx.push({kind:'ink',x:ix,y:iy,vx:-c.dir*rand(40,220),vy:rand(-120,120),life:1.6,r:rand(8,20)});}
+    if(a.k==='hearts'&&a.em>.18){a.em=0;const h=c.hit;if(h)state.fx.push({kind:'heart',x:h.x+h.w*rand(.2,.8),y:h.y,vx:rand(-30,30),vy:-rand(60,110),life:1.3,r:rand(9,15)});}
+    if(a.k==='dance'&&a.em>.28){a.em=0;const h=c.hit;if(h)state.fx.push({kind:'note',x:h.x+h.w*rand(0,1),y:h.y,vx:rand(-30,30),vy:-rand(50,90),life:1.4,r:rand(16,24),c:CRAYON[Math.random()*CRAYON.length|0]});}
+    if(a.k==='rear'&&p>.82&&!a.done.st){a.done.st=1;state.shake=.5;const h=c.hit;if(h)for(let i=0;i<14;i++)state.fx.push({kind:'dust',x:h.x+h.w*rand(.1,.9),y:h.y+h.h,vx:rand(-120,120),vy:-rand(20,90),life:1,r:rand(6,14)});play('thud');}
+    if((a.k==='dash'||a.k==='wheelie')&&(m==='drive')&&a.em>.06){a.em=0;const [ex,ey]=worldPt(c,2,t.h*.72);state.fx.push({kind:'dust',x:ex,y:ey,vx:-c.dir*rand(40,90),vy:-rand(10,40),life:.8,r:rand(5,10)});}
+    if(a.k==='dash'&&m==='swim'&&a.em>.05){a.em=0;const [bx,by]=worldPt(c,4,t.h*.5);state.fx.push({kind:'bubble',x:bx,y:by,vx:-c.dir*rand(20,60),vy:-rand(20,60),life:1,r:rand(3,7)});}
+    if(a.t>=a.dur)c.act=null;}
+  const sp=c.speed*(1+c.boost*2.2)*(baseSize()/800)*mul;
+  if(!hold)c.x+=c.dir*sp*dt;
   const off=sz*.7;
-  if(m==='drive'){if(c.dir>0&&c.x>W+off)c.x=-off;if(c.dir<0&&c.x<-off)c.x=W+off;c.wheel+=sp*dt/(sz*15/t.w);}
+  if(m==='drive'){if(c.dir>0&&c.x>W+off)c.x=-off;if(c.dir<0&&c.x<-off)c.x=W+off;c.wheel+=(hold?0:sp)*dt/(sz*15/t.w);}
   else if(c.dir>0&&c.x>W+off||c.dir<0&&c.x<-off){c.dir*=-1;if(m!=='walker')spawnBand(c);}
-  c.ph+=dt*(m==='walk'||m==='walker'?sp/(sz*.16):m==='fly'?9*(1+c.boost):0);
-  if(m==='plane'){c.trail.push({x:c.x-c.dir*sz*.46,y:c.fy*H+Math.sin(c.t*.4)*10+sz*.02,a:1});c.trail.forEach(p=>p.a-=dt*.45);c.trail=c.trail.filter(p=>p.a>0);}
+  const legRate=(m==='walk'||m==='walker')?(hold?(a&&a.k==='dance'?9:0):sp/(sz*.16)):m==='fly'?9*(1+c.boost)*(a&&a.k==='loop'?1.6:1):0;
+  c.ph+=dt*legRate;
+  if(m==='plane'){const [tx,ty]=worldPt(c,10,48);c.trail.push({x:tx,y:ty,a:1});c.trail.forEach(p=>p.a-=dt*.45);c.trail=c.trail.filter(p=>p.a>0);}
 }
 function posY(c){const t=c.t_,m=t.motion;const base=c.fy*H;
   if(m==='swim')return base+Math.sin(c.t*.8+c.ph)*H*.03;
@@ -569,71 +615,135 @@ function posY(c){const t=c.t_,m=t.motion;const base=c.fy*H;
   if(m==='balloon')return base+Math.sin(c.t*.5)*H*.03;
   return base;}
 
+/* アクション中の姿勢 */
+function pose(c,sz){const o={dx:0,dy:0,rot:0,sx:1,sy:1};const a=c.act;if(!a)return o;const p=Math.min(1,a.t/a.dur),S=Math.sin;
+  switch(a.k){
+  case 'jump':case 'flip':{const hgt=Math.min(a.k==='jump'?1.5:1.25,H*.3/sz);if(p<.12){const q=S(p/.12*P);o.sy=1-.3*q;o.sx=1+.2*q;}else{const q=(p-.12)/.88;o.dy=-sz*hgt*4*q*(1-q);const st=S(q*P);if(a.k==='jump'){o.sy=1+.2*st;o.sx=1-.1*st;}else o.rot=ease(q)*P*2;if(q>.9){const r=(q-.9)/.1;o.sy*=1-.2*S(r*P);o.sx*=1+.12*S(r*P);}}break;}
+  case 'spin':{o.rot=ease(p)*P*4;const s=1+.35*S(p*P);o.sx=o.sy=s;break;}
+  case 'grow':{const env=p<.25?ease(p/.25):p>.72?1-ease((p-.72)/.28):1;const s=1+env*(.9+.1*S(p*44));o.sx=o.sy=s;break;}
+  case 'jelly':{const k=(1-p)*.32;o.sx=1+k*S(p*30);o.sy=1-k*S(p*30);break;}
+  case 'dizzy':{o.rot=S(p*18)*.22*(1-p*.4);o.dx=S(p*9)*sz*.05;break;}
+  case 'dash':{if(p<.15){o.sx=1-.15*S(p/.15*P);o.sy=1+.1*S(p/.15*P);}else{o.sx=1.18;o.sy=.9;}break;}
+  case 'ink':{if(p<.25){const q=S(p/.25*P);o.sx=1+.25*q;o.sy=1-.2*q;}break;}
+  case 'loop':{const g=ease(p)*P*2,R=sz*.9;o.dx=c.dir*R*S(g);o.dy=-R*(1-Math.cos(g));o.rot=-g;break;}
+  case 'rise':{o.dy=-H*.28*S(p*P);o.rot=S(p*P*6)*.08;break;}
+  case 'roar':{const env=S(Math.min(1,p*3)*P/2)*(1-Math.max(0,(p-.75)/.25));o.sx=o.sy=1+.2*env;o.dx=S(p*90)*3*env;o.rot=-.12*env;break;}
+  case 'rear':{const env=p<.8?S(p/.8*P/2):1-(p-.8)/.2;o.rot=-.42*env;o.piv=1;break;}
+  case 'spout':{const env=S(p*P);o.sx=1+.08*env;o.sy=1+.08*env+.04*S(p*40)*env;break;}
+  case 'wheelie':{o.rot=-.34*S(p*P);o.piv=1;break;}
+  case 'dance':{o.rot=S(p*P*8)*.25;o.dy=-Math.abs(S(p*P*8))*sz*.18;o.sx=1+.06*S(p*P*16);break;}
+  case 'hearts':{o.dy=-Math.abs(S(p*P*5))*sz*.14*(1-p);const s=1+.08*S(p*P*10);o.sx=o.sy=s;break;}
+  }
+  return o;}
+
 /* ---------- いきものの描画 ---------- */
 function drawCreature(c,T){
   const t=c.t_,m=t.motion,ground=(m==='walk'||m==='drive'||m==='walker');
   const sz=baseSize()*c.size*depthScale(c),u=sz/t.w;let y=posY(c);
-  const e=c.enter<1?easeBack(c.enter):1;
+  const e=c.enter<1?easeBack(c.enter):1;const pz=pose(c,sz);
   let rot=0,bob=0,sy=1;
   if(m==='swim')rot=Math.cos(c.t*.8+c.ph)*.12;
   if(m==='octo')sy=1+Math.sin(c.t*3)*.04;
   if(m==='fly')rot=Math.cos(c.t*1.3)*.14;
   if(m==='plane')rot=-Math.cos(c.t*.4)*.04;
   if(m==='balloon')rot=Math.sin(c.t*.8)*.06;
-  if(m==='walk'||m==='walker')bob=-Math.abs(Math.sin(c.ph))*sz*(m==='walker'?.05:.02);
+  if((m==='walk'||m==='walker')&&!(c.act&&ACT[c.act.k].hold))bob=-Math.abs(Math.sin(c.ph))*sz*(m==='walker'?.05:.02);
   if(m==='drive')bob=Math.sin(c.t*22)*.8;
-  if(c.spin>0)rot+=(1-c.spin)*P*2;
+  let prot=0;if(c.act){if(pz.piv){prot=pz.rot;}else rot=pz.rot+(c.act.k==='loop'||c.act.k==='spin'||c.act.k==='flip'?0:rot);}
   if(m==='plane'&&c.trail.length>1){ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineCap='round';for(let i=1;i<c.trail.length;i++){const a=c.trail[i-1],b=c.trail[i];ctx.globalAlpha=b.a*.8;ctx.lineWidth=sz*.035*b.a;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}ctx.globalAlpha=1;}
-  if(ground){ctx.fillStyle='rgba(0,0,0,.16)';ctx.beginPath();ctx.ellipse(c.x,y,sz*.42*(1-Math.min(.5,c.jz/300)),sz*.05,0,0,7);ctx.fill();}
-  ctx.save();ctx.translate(c.x,y+bob-c.jz);
+  if(ground){const lift=Math.min(.6,-pz.dy/(sz*1.5));ctx.fillStyle=`rgba(0,0,0,${.16*(1-lift)})`;ctx.beginPath();ctx.ellipse(c.x+pz.dx,y,sz*.42*(1-lift*.6),sz*.05,0,0,7);ctx.fill();}
+  // スピード線
+  if(c.act&&(c.act.k==='dash'&&c.act.t/c.act.dur>.15||c.act.k==='ink'&&c.act.t/c.act.dur>.25||c.act.k==='wheelie')&&c.hit){const h=c.hit;ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineCap='round';ctx.lineWidth=3;
+    for(let i=0;i<5;i++){const ly=h.y+h.h*(.2+i*.15),len=sz*(.35+.25*Math.sin(T*20+i*2)),x0=c.dir>0?h.x-8:h.x+h.w+8;ctx.beginPath();ctx.moveTo(x0,ly);ctx.lineTo(x0-c.dir*len,ly);ctx.stroke();}}
+  ctx.save();
+  ctx.translate(c.x+pz.dx,y+bob+pz.dy);
+  ctx.scale(e*pz.sx,e*pz.sy);
   if(ground)ctx.translate(0,-t.h*u*.5);
-  ctx.scale(e,e);if(c.dir<0)ctx.scale(-1,1);ctx.rotate(rot);ctx.scale(u,u*sy);ctx.translate(-t.w/2,-t.h/2);
+  if(c.dir<0)ctx.scale(-1,1);ctx.rotate(rot);ctx.scale(u,u*sy);ctx.translate(-t.w/2,-t.h/2);
+  if(prot){const px=t.w*(m==='drive'?.22:.3),py=t.h;ctx.translate(px,py);ctx.rotate(prot);ctx.translate(-px,-py);}
+  c.m=ctx.getTransform();
+  const walking=(m==='walk'||m==='walker');const hold=c.act&&ACT[c.act.k].hold;
   const drawPart=p=>{const pc=p.piece;let a=0;
-    if(p.kind==='leg'||p.kind==='arm')a=(m==='walk'||m==='walker')?Math.sin(c.ph+p.off)*p.amp*P/180:Math.sin(c.t*2+p.off)*p.amp*P/360;
+    if(p.kind==='leg'||p.kind==='arm'){if(c.act&&c.act.k==='dizzy')a=Math.sin(c.t*14+p.off)*p.amp*P/180;else if(c.act&&(c.act.k==='roar'||c.act.k==='hearts'||c.act.k==='rear'))a=(p.kind==='arm'?-1:.3)*Math.sin(c.act.t*25+p.off)*p.amp*P/180;else a=walking&&!(hold&&!(c.act.k==='dance'))?Math.sin(c.ph+p.off)*p.amp*P/180*(c.act&&c.act.k==='dance'?1.6:1):Math.sin(c.t*2+p.off)*p.amp*P/360;}
     else if(p.kind==='wing')a=-(.5+.5*Math.sin(c.ph))*p.amp*P/180;
     else if(p.kind==='spin')a=c.wheel;
     ctx.save();ctx.translate(p.pivot[0],p.pivot[1]);ctx.rotate(a);ctx.translate(-p.pivot[0],-p.pivot[1]);ctx.drawImage(pc.cv,pc.x,pc.y,pc.w,pc.h);ctx.restore();};
   c.p.parts.filter(p=>p.z==='back').forEach(drawPart);
-  const b=c.p.body;
-  if(t.deform==='wave'){const n=22,cw=b.cv.width,ch=b.cv.height,[amp,fq]=t.wave;for(let i=0;i<n;i++){const sx=i*cw/n,sw=cw/n+1.5;const lx=b.x+(i/n)*b.w;const tail=Math.max(0,1-lx/t.w-.12);const dy=amp*Math.pow(tail,1.6)*2.2*Math.sin(c.t*fq*(1+c.boost)-lx*.045);ctx.drawImage(b.cv,sx,0,Math.min(sw,cw-sx),ch,lx,b.y+dy,Math.min(sw,cw-sx)/cw*b.w,b.h);}}
-  else if(t.deform==='tentacle'){const n=24,cw=b.cv.width,ch=b.cv.height;for(let i=0;i<n;i++){const sy0=i*ch/n,sh=ch/n+1.5;const ly=b.y+(i/n)*b.h;const k=Math.max(0,(ly/t.h-.55)/.45);const dx=7*Math.pow(k,1.3)*Math.sin(c.t*3-ly*.09);ctx.drawImage(b.cv,0,sy0,cw,Math.min(sh,ch-sy0),b.x+dx,ly,b.w,Math.min(sh,ch-sy0)/ch*b.h);}}
+  const b=c.p.body;const fast=c.act&&(c.act.k==='dash'||c.act.k==='ink')?2.2:1;
+  if(t.deform==='wave'){const n=22,cw=b.cv.width,ch=b.cv.height,[amp,fq]=t.wave;for(let i=0;i<n;i++){const sx=i*cw/n,sw=cw/n+1.5;const lx=b.x+(i/n)*b.w;const tail=Math.max(0,1-lx/t.w-.12);const dy=amp*Math.pow(tail,1.6)*2.2*Math.sin(c.t*fq*(1+c.boost)*fast-lx*.045);ctx.drawImage(b.cv,sx,0,Math.min(sw,cw-sx),ch,lx,b.y+dy,Math.min(sw,cw-sx)/cw*b.w,b.h);}}
+  else if(t.deform==='tentacle'){const n=24,cw=b.cv.width,ch=b.cv.height;for(let i=0;i<n;i++){const sy0=i*ch/n,sh=ch/n+1.5;const ly=b.y+(i/n)*b.h;const k=Math.max(0,(ly/t.h-.55)/.45);const dx=7*fast*Math.pow(k,1.3)*Math.sin(c.t*3*fast-ly*.09);ctx.drawImage(b.cv,0,sy0,cw,Math.min(sh,ch-sy0),b.x+dx,ly,b.w,Math.min(sh,ch-sy0)/ch*b.h);}}
   else ctx.drawImage(b.cv,b.x,b.y,b.w,b.h);
   c.p.parts.filter(p=>p.z!=='back').forEach(drawPart);
   ctx.restore();
-  c.hit={x:c.x-sz/2,y:(ground?y-t.h*u:y-t.h*u/2)-c.jz,w:sz,h:t.h*u};
+  const hw=sz*pz.sx*e,hh=t.h*u*pz.sy*e;const cy0=ground?y+pz.dy-hh:y+pz.dy-hh/2;
+  c.hit={x:c.x+pz.dx-hw/2,y:cy0,w:hw,h:hh};
 }
+function drawOverlay(c,T){const a=c.act,h=c.hit;if(!a||!h)return;const p=a.t/a.dur;
+  if(a.k==='dizzy'){for(let i=0;i<3;i++){const g=T*6+i*P*2/3;const sx=h.x+h.w/2+Math.cos(g)*h.w*.28,sy=h.y-6+Math.sin(g)*8;star(sx,sy,9,'#ffd23f');}}
+  if(a.say&&p<.8){const fs=Math.max(16,Math.min(34,baseSize()*.035));ctx.font=`900 ${fs}px "Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif`;const tw=ctx.measureText(a.say).width;
+    const pop=p<.12?easeBack(p/.12):1;const bx=Math.min(W-tw/2-24,Math.max(tw/2+24,h.x+h.w/2)),by=Math.max(fs+80,h.y-24);
+    ctx.save();ctx.translate(bx,by);ctx.scale(pop,pop);ctx.fillStyle='#fff';ctx.strokeStyle='#16324c';ctx.lineWidth=3;
+    const bw=tw+28,bh=fs+18;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-bw/2,-bh,bw,bh,bh/2);else ctx.rect(-bw/2,-bh,bw,bh);ctx.moveTo(-8,0);ctx.lineTo(0,12);ctx.lineTo(8,0);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#fff';ctx.fillRect(-7,-3,14,5);ctx.fillStyle='#16324c';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(a.say,0,-bh/2+1);ctx.restore();}}
+function star(x,y,r,col){ctx.fillStyle=col;ctx.beginPath();for(let i=0;i<10;i++){const rr2=i%2?r*.45:r;ctx.lineTo(x+Math.cos(i*P/5-P/2)*rr2,y+Math.sin(i*P/5-P/2)*rr2);}ctx.closePath();ctx.fill();}
 const easeBack=x=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
 
 /* ---------- エフェクト ---------- */
 function burst(x,y,sc,big){const n=big?26:12;for(let i=0;i<n;i++){const a=rand(0,P*2),v=rand(60,big?320:180);state.fx.push({kind:sc==='sea'?'bubble':'star',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(sc==='sea'?60:0),life:1,r:rand(3,big?10:7),c:CRAYON[i%CRAYON.length]});}
   if(big)state.fx.push({kind:'ring',x,y,life:1,r:10});}
+function heart(x,y,r){ctx.beginPath();ctx.moveTo(x,y+r*.35);ctx.bezierCurveTo(x-r*1.1,y-r*.4,x-r*.5,y-r*1.1,x,y-r*.45);ctx.bezierCurveTo(x+r*.5,y-r*1.1,x+r*1.1,y-r*.4,x,y+r*.35);ctx.fill();}
 function drawFx(dt){state.fx.forEach(f=>{f.life-=dt*(f.kind==='ring'?1.2:1.1);
   if(f.kind==='ring'){f.r+=520*dt;ctx.strokeStyle=`rgba(255,255,255,${Math.max(0,f.life)})`;ctx.lineWidth=6;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.stroke();return;}
-  f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=.96;f.vy=f.vy*.96+(f.kind==='bubble'?-40*dt:120*dt);ctx.globalAlpha=Math.max(0,f.life);
+  f.x+=f.vx*dt;f.y+=f.vy*dt;
+  if(f.kind==='drop'){f.vy+=900*dt;}else if(f.kind==='heart'||f.kind==='note'){f.vx*=.98;}else if(f.kind==='ink'){f.vx*=.94;f.vy*=.94;f.r+=18*dt;}else if(f.kind==='dust'){f.vx*=.95;f.vy*=.95;f.r+=10*dt;}else{f.vx*=.96;f.vy=f.vy*.96+(f.kind==='bubble'?-40*dt:120*dt);}
+  const al=Math.max(0,Math.min(1,f.life));ctx.globalAlpha=al;
   if(f.kind==='bubble'){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.stroke();}
-  else{ctx.fillStyle=f.c;ctx.save();ctx.translate(f.x,f.y);ctx.rotate(f.life*4);ctx.beginPath();for(let i=0;i<10;i++){const rr2=i%2?f.r*.45:f.r;ctx.lineTo(Math.cos(i*P/5)*rr2,Math.sin(i*P/5)*rr2);}ctx.fill();ctx.restore();}
+  else if(f.kind==='drop'){ctx.fillStyle='rgba(170,225,255,.95)';ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}
+  else if(f.kind==='ink'){ctx.globalAlpha=al*.8;ctx.fillStyle='#231f3a';ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}
+  else if(f.kind==='dust'){ctx.globalAlpha=al*.6;ctx.fillStyle='#e9e2d0';ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill();}
+  else if(f.kind==='heart'){ctx.fillStyle='#ff5a8a';heart(f.x,f.y,f.r);}
+  else if(f.kind==='note'){ctx.fillStyle=f.c;ctx.font=`900 ${f.r}px sans-serif`;ctx.textAlign='center';ctx.fillText(Math.random()<.5?'♪':'♫',f.x,f.y);}
+  else star(f.x,f.y,f.r,f.c);
   ctx.globalAlpha=1;});state.fx=state.fx.filter(f=>f.life>0);}
+
+/* ---------- おと ---------- */
+let AC=null,soundOn=true;try{soundOn=localStorage.getItem('oekaki-sound')!=='off';}catch(e){}
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;}
+function tone(f0,f1,dur,type='sine',vol=.2,delay=0){const a=ac();if(!a)return;const t0=a.currentTime+delay;const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f0,t0);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t0+dur);g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);o.connect(g).connect(a.destination);o.start(t0);o.stop(t0+dur+.05);}
+function noise(dur,vol=.25,fq=1200){const a=ac();if(!a)return;const b=a.createBuffer(1,a.sampleRate*dur,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=a.createBufferSource();s.buffer=b;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=fq;const g=a.createGain();g.gain.value=vol;s.connect(f).connect(g).connect(a.destination);s.start();}
+function play(k){if(!soundOn)return;try{switch(k){
+  case 'pop':tone(700,300,.09,'sine',.15);break;
+  case 'boing':tone(160,520,.22,'sine',.25);tone(520,180,.3,'sine',.2,.22);break;
+  case 'whirl':tone(300,1000,.5,'triangle',.18);break;
+  case 'grow':tone(200,900,.8,'sine',.2);break;
+  case 'jelly':[0,.1,.2,.3].forEach((d,i)=>tone(400-i*40,300-i*40,.09,'sine',.18,d));break;
+  case 'dizzy':[0,.18,.36].forEach((d,i)=>tone(700-i*120,500-i*120,.16,'triangle',.15,d));break;
+  case 'zoom':tone(180,1400,.45,'sawtooth',.08);break;
+  case 'roar':tone(140,60,.7,'sawtooth',.2);noise(.6,.2,300);break;
+  case 'thud':tone(90,40,.3,'sine',.4);noise(.25,.25,200);break;
+  case 'splash':noise(.7,.3,2200);break;
+  case 'honk':tone(420,400,.14,'square',.1);tone(420,400,.18,'square',.1,.2);break;
+  case 'dance':[523,659,784,1047].forEach((f,i)=>tone(f,f,.14,'triangle',.15,i*.14));break;
+  case 'happy':tone(660,990,.15,'sine',.18);tone(880,1320,.2,'sine',.18,.16);break;
+}}catch(e){}}
 
 /* ---------- ループ ---------- */
 let last=performance.now();
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;state.time+=dt;const T=state.time;
   ctx.setTransform(DPR,0,0,DPR,0,0);const sc=state.scene;
+  if(state.shake>0){state.shake=Math.max(0,state.shake-dt*1.4);const k=state.shake*10;ctx.translate(W/2+rand(-k,k),H/2+rand(-k,k));ctx.scale(1.03,1.03);ctx.translate(-W/2,-H/2);}
   drawBackBehind(sc,dt,T);
   const list=state.cr[sc];list.forEach(c=>update(c,dt));
   const order=[...list].sort((a,b)=>{const g=m=>m==='walk'||m==='drive'||m==='walker';return (g(a.t_.motion)&&g(b.t_.motion))?a.fy-b.fy:0;});
   order.forEach(c=>drawCreature(c,T));
   drawBackFront(sc,dt,T);drawFx(dt);
+  order.forEach(c=>drawOverlay(c,T));
   requestAnimationFrame(frame);}
 
 /* ---------- タップ ---------- */
-stage.addEventListener('pointerdown',e=>{const x=e.clientX,y=e.clientY;const list=state.cr[state.scene];
-  for(let i=list.length-1;i>=0;i--){const c=list[i],h=c.hit;if(!h)continue;if(x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){surprise(c);burst(x,y,state.scene,false);return;}}
-  burst(x,y,state.scene,false);});
-function surprise(c){const m=c.t_.motion;
-  if(m==='walk'||m==='walker'||m==='drive'){if(c.jz===0)c.jv=520;c.boost=1;}
-  else if(m==='fly'||m==='plane'){c.spin=1;c.boost=1;}
-  else if(m==='balloon'){c.fy=Math.max(.15,c.fy-.1);c.spin=0;c.boost=1;}
-  else{c.boost=1.2;c.dir*=-1;}}
+stage.addEventListener('pointerdown',e=>{ac();const x=e.clientX,y=e.clientY;const list=state.cr[state.scene];
+  for(let i=list.length-1;i>=0;i--){const c=list[i],h=c.hit;if(!h||c.enter<1)continue;const pad=Math.max(0,24-h.w*.1);if(x>=h.x-pad&&x<=h.x+h.w+pad&&y>=h.y-pad&&y<=h.y+h.h+pad){surprise(c);burst(x,y,state.scene,false);return;}}
+  burst(x,y,state.scene,false);play('pop');});
 
 /* ============================================================
    UI
@@ -648,7 +758,9 @@ let resetArm=0;const btnReset=document.getElementById('btnReset');
 btnReset.addEventListener('click',()=>{const now=Date.now();if(now-resetArm<3000){state.cr[state.scene]=[];resetArm=0;btnReset.classList.remove('warn');btnReset.querySelector('.lbl-long').textContent='リセット';toast('けしたよ');return;}
   resetArm=now;btnReset.classList.add('warn');btnReset.querySelector('.lbl-long').textContent='もういちど おすと けします';btnReset.setAttribute('aria-label','もういちど おすと けします');
   setTimeout(()=>{if(Date.now()-resetArm>=2900){btnReset.classList.remove('warn');btnReset.querySelector('.lbl-long').textContent='リセット';}},3000);});
-setTimeout(()=>document.getElementById('hint').hidden=true,9000);
+setTimeout(()=>document.getElementById('hint').hidden=true,12000);
+const btnSound=document.getElementById('btnSound');const syncSound=()=>{btnSound.setAttribute('aria-pressed',soundOn);btnSound.setAttribute('aria-label',soundOn?'おと オン':'おと オフ');};syncSound();
+btnSound.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem('oekaki-sound',soundOn?'on':'off');}catch(e){}syncSound();if(soundOn)play('pop');});
 
 function openModal(id){document.getElementById(id).hidden=false;}
 function closeModal(id){document.getElementById(id).hidden=true;if(id==='scanModal')stopLive();}
@@ -729,6 +841,6 @@ setScene(startScene);
 TPL.forEach(t=>addCreature(t,cutPieces(t,coloredSource(t)),{demo:true}));
 requestAnimationFrame(frame);
 
-window.OE={TPL,TPL_BY_ID,sheetSVG,analyze,homography,applyH,MARK,addCreature,cutPieces,scannedSource,setScene,state,fromSource};
+window.OE={surprise,TPL,TPL_BY_ID,sheetSVG,analyze,homography,applyH,MARK,addCreature,cutPieces,scannedSource,setScene,state,fromSource};
 })();
 </script>
