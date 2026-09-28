@@ -80,7 +80,7 @@ video{width:100%;border-radius:14px;background:#000;display:block}
 .gallery figure{margin:0;display:flex;flex-direction:column;gap:6px}
 .gallery svg{width:100%;height:auto;background:#fff;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
 .gallery figcaption{font-weight:700;font-size:14px;display:flex;gap:6px;align-items:center}
-.chip{font-size:11px;color:#fff;padding:3px 8px;border-radius:99px;background:var(--c)}
+.chip{white-space:nowrap;flex:none;font-size:11px;color:#fff;padding:3px 8px;border-radius:99px;background:var(--c)}
 #printSheets{display:none}
 @media (max-width:760px){
   .adjust{grid-template-columns:1fr}
@@ -166,7 +166,7 @@ video{width:100%;border-radius:14px;background:#000;display:block}
 <!-- sheets modal -->
 <div class="modal" id="sheetModal" hidden>
   <div class="card">
-    <div class="card-head"><h2>ぬりえ ようし（12しゅるい）</h2><button class="close" data-close aria-label="とじる">×</button></div>
+    <div class="card-head"><h2>ぬりえ ようし（17しゅるい）</h2><button class="close" data-close aria-label="とじる">×</button></div>
     <p class="lead">A4で印刷して使います。四すみの黒い四角と、下にある小さな四角の列（コード）で、どの用紙かを自動で見分けます。この2か所はぬらないように伝えてください。印刷には「ぬりえ用紙PDF」をお使いください。</p>
     <div class="gallery" id="gallery"></div>
   </div>
@@ -224,7 +224,7 @@ const TPL=[
   body:['M150,52L166,56L150,61C146,70 136,74 124,74C112,84 92,88 72,84C58,82 45,77 34,73L10,86L17,71L4,62L32,63C44,58 58,56 72,56C86,54 104,52 116,50C122,44 130,42 136,42C143,42 148,46 150,52Z'],
   parts:[{d:['M78,62C68,42 58,22 48,4C74,12 100,30 114,58Z'],pivot:[96,60],kind:'wing',amp:75,off:0,z:'front'}],
   details:[circ(139,52,3.5),'M150,56H160','M84,78Q104,80 120,72'],dots:[[140,52,1.8]]},
- {id:8,scene:'sky',name:'ひこうき',w:178,h:97,motion:'plane',size:.27,speed:[120,170],
+ {id:8,scene:'sky',name:'ひこうき',w:178,h:97,motion:'plane',size:.27,speed:[120,170],tail:[10,48],
   body:['M175,55C175,48 165,42 150,42L45,42L20,10L5,10L15,45C8,48 8,58 15,62L80,65L60,95L78,95L112,66L150,68C165,68 175,62 175,55Z'],
   parts:[],details:[circ(60,52,3.5),circ(74,52,3.5),circ(88,52,3.5),circ(102,52,3.5),circ(116,52,3.5),circ(130,52,3.5),'M158,46L168,51L158,53Z','M22,59L150,61'],dots:[]},
  {id:9,scene:'sky',name:'ききゅう',w:120,h:156,motion:'balloon',size:.15,speed:[14,22],
@@ -246,7 +246,28 @@ const TPL=[
    {d:[rr(26,88,13,60,5)],pivot:[32,92],kind:'leg',amp:20,off:0,z:'back'},
    {d:[rr(41,88,13,60,5)],pivot:[47,92],kind:'leg',amp:20,off:P,z:'front'},
    {d:[rr(56,42,11,44,5)],pivot:[61,46],kind:'arm',amp:26,off:0,z:'front'}],
-  details:['M34,29Q40,33 46,29','M23,20C24,4 56,4 57,20','M32,40L40,48L48,40','M26,140H39','M41,140H54'],dots:[[34,22,2],[46,22,2]]}
+  details:['M34,29Q40,33 46,29','M23,20C24,4 56,4 57,20','M32,40L40,48L48,40','M26,140H39','M41,140H54'],dots:[[34,22,2],[46,22,2]]},
+
+ {id:13,scene:'city',name:'パトカー',w:172,h:92,motion:'drive',size:.22,speed:[80,120],light:[97,10],
+  body:['M5,70L5,52C5,47 10,44 18,44L45,42L65,18C68,14 72,13 78,13L118,13C124,13 128,15 132,19L152,42C162,43 168,48 168,56L168,70C168,74 165,76 160,76L10,76C7,76 5,74 5,70Z',rr(80,6,34,8,3)],
+  parts:[{d:[circ(42,76,15)],pivot:[42,76],kind:'spin',z:'front'},{d:[circ(132,76,15)],pivot:[132,76],kind:'spin',z:'front'}],
+  details:['M72,20L62,40H96V20Z','M102,20V40H144L126,20Z','M98,44V70','M5,58H168','M97,6V14',circ(160,53,4),circ(42,76,6),circ(132,76,6),'M42,61V70M42,82V91M27,76H36M48,76H57','M132,61V70M132,82V91M117,76H126M138,76H147'],dots:[]},
+ {id:14,scene:'city',name:'はしごしょうぼうしゃ',w:200,h:92,motion:'drive',size:.36,speed:[60,90],light:[173,9],
+  body:['M4,30H150V20C150,14 154,12 160,12H182C190,12 196,20 198,32L198,72C198,76 195,78 190,78H10C6,78 4,76 4,72Z',rr(164,6,18,6,2),rr(14,22,22,8,2)],
+  parts:[{d:[rr(16,14,134,10,2)],pivot:[22,19],kind:'ladder',z:'front'},{d:[circ(36,78,13)],pivot:[36,78],kind:'spin',z:'front'},{d:[circ(64,78,13)],pivot:[64,78],kind:'spin',z:'front'},{d:[circ(170,78,13)],pivot:[170,78],kind:'spin',z:'front'}],
+  details:['M28,14V24M38,14V24M48,14V24M58,14V24M68,14V24M78,14V24M88,14V24M98,14V24M108,14V24M118,14V24M128,14V24M138,14V24M148,14V24','M162,18H184C188,18 192,24 193,32H162Z',rr(10,38,30,26,2),rr(46,38,30,26,2),rr(82,38,30,26,2),rr(118,38,26,26,2),'M4,68H150',circ(36,78,5),circ(64,78,5),circ(170,78,5)],dots:[]},
+ {id:15,scene:'city',name:'きゅうきゅうしゃ',w:176,h:90,motion:'drive',size:.24,speed:[70,110],light:[72,9],
+  body:['M6,70V24C6,16 12,12 20,12H128C136,12 140,14 146,20L166,42C170,46 172,50 172,56V70C172,74 170,76 166,76H12C8,76 6,74 6,70Z',rr(60,5,24,8,3)],
+  parts:[{d:[circ(40,76,13)],pivot:[40,76],kind:'spin',z:'front'},{d:[circ(140,76,13)],pivot:[140,76],kind:'spin',z:'front'}],
+  details:['M130,20L148,42H124V20Z','M6,56H172','M104,20V76','M72,26H84V34H92V46H84V54H72V46H64V34H72Z',circ(40,76,5),circ(140,76,5),circ(164,60,3.5)],dots:[]},
+
+ {id:16,scene:'sky',name:'ヘリコプター',w:182,h:96,motion:'heli',size:.2,speed:[28,48],
+  body:['M150,60C150,40 132,28 108,28H80C62,28 52,40 50,52L20,50L10,34H2L6,58C6,62 10,64 16,64L60,66C66,76 76,80 90,80H128C142,80 150,72 150,60Z',rr(97,18,8,12,2),rr(74,78,5,14,2),rr(116,78,5,14,2),rr(56,89,84,6,3)],
+  parts:[{d:[rr(20,12,160,6,3)],pivot:[101,15],kind:'rotor',z:'front'},{d:[circ(9,40,8)],pivot:[9,40],kind:'spin',z:'front'}],
+  details:['M112,32C130,32 142,42 146,54H112Z','M84,34V74','M50,58H148','M9,33V47M2,40H16'],dots:[]},
+ {id:17,scene:'sky',name:'ブルーインパルス',w:180,h:78,motion:'jet',size:.2,speed:[170,230],tail:[12,44],
+  body:['M178,44C170,38 150,34 128,34L112,30C104,24 92,22 82,26L70,34L40,34L22,12H10L16,36C10,38 8,44 12,48L40,52L66,52L52,72H66L96,52L130,52C156,52 172,50 178,44Z'],
+  parts:[],details:['M80,33C88,25 104,25 114,33','M20,44C60,41 120,41 170,44','M96,40H122','M22,14L36,34'],dots:[]}
 ];
 const TPL_BY_ID={};TPL.forEach(t=>TPL_BY_ID[t.id]=t);
 const SCENES={sea:{label:'うみ',c:'#1a7fc0'},land:{label:'りく',c:'#4e9f3d'},sky:{label:'そら',c:'#3d9bf5'},city:{label:'まち',c:'#e8783a'}};
@@ -260,7 +281,7 @@ const MK=14;
 const AREA={x:20,y:50,w:170,h:196};
 const CODE={x0:76.5,y:275,size:7,step:10}; // 0:スタート(黒) 1-4:ID 5:パリティ
 function place(t){const s=Math.min(AREA.w/t.w,AREA.h/t.h,1.35);return {s,ox:AREA.x+(AREA.w-t.w*s)/2,oy:AREA.y+(AREA.h-t.h*s)/2};}
-function codeBits(id){const b=[1,id&1,(id>>1)&1,(id>>2)&1,(id>>3)&1];b.push((b[1]+b[2]+b[3]+b[4])%2);return b;}
+function codeBits(id){const b=[1,id&1,(id>>1)&1,(id>>2)&1,(id>>3)&1];b.push((b[1]+b[2]+b[3]+b[4])%2);const b5=(id>>4)&1;b.push(b5,b5);return b;}
 
 function sheetSVG(t,opt={}){
   const {s,ox,oy}=place(t);
@@ -282,7 +303,7 @@ function sheetSVG(t,opt={}){
 ${MARK.map(([x,y])=>`<rect x="${x-MK/2}" y="${y-MK/2}" width="${MK}" height="${MK}" fill="#000"/>`).join('')}
 <rect x="28" y="28" width="${sc.label.length*5+8}" height="9" rx="4.5" fill="none" stroke="#111" stroke-width=".5"/>
 <text x="${28+(sc.label.length*5+8)/2}" y="34.6" text-anchor="middle" font-size="5" font-weight="700" ${F} fill="#111">${sc.label}</text>
-<text x="${28+sc.label.length*5+13}" y="36.5" font-size="9" font-weight="900" ${F} fill="#111">${t.name}</text>
+<text x="${28+sc.label.length*5+13}" y="36.5" font-size="${Math.min(9,66/t.name.length).toFixed(2)}" font-weight="900" ${F} fill="#111">${t.name}</text>
 <text x="124" y="36.5" font-size="4.2" font-weight="700" ${F} fill="#111">なまえ</text>
 <line x1="139" y1="37.5" x2="186" y2="37.5" stroke="#111" stroke-width=".4"/>
 <g transform="translate(${ox.toFixed(3)} ${oy.toFixed(3)}) scale(${s.toFixed(4)})">${g}</g>
@@ -315,10 +336,11 @@ function readCode(img,h){
   const {black,white}=refs(img,h);
   const lb=lum(black),lw=lum(white);if(lw-lb<35)return null;
   const thr=(lb+lw)/2;const bits=[];let conf=1;
-  for(let i=0;i<6;i++){const c=patch(img,h,CODE.x0+i*CODE.step+CODE.size/2,CODE.y+CODE.size/2,1.6);const l=lum(c);bits.push(l<thr?1:0);conf=Math.min(conf,Math.abs(l-thr)/(lw-lb));}
+  for(let i=0;i<8;i++){const c=patch(img,h,CODE.x0+i*CODE.step+CODE.size/2,CODE.y+CODE.size/2,1.6);const l=lum(c);bits.push(l<thr?1:0);conf=Math.min(conf,Math.abs(l-thr)/(lw-lb));}
   if(bits[0]!==1)return null;
   if((bits[1]+bits[2]+bits[3]+bits[4])%2!==bits[5])return null;
-  const id=bits[1]+bits[2]*2+bits[3]*4+bits[4]*8;
+  if(bits[6]!==bits[7])return null;
+  const id=bits[1]+bits[2]*2+bits[3]*4+bits[4]*8+bits[6]*16;
   if(!TPL_BY_ID[id])return null;
   return {id,conf};
 }
@@ -446,7 +468,8 @@ function spawnBand(c){const m=c.t_.motion;
   if(m==='swim'||m==='octo')c.fy=rand(.2,.78);
   else if(m==='walk')c.fy=rand(.68,.95);
   else if(m==='fly')c.fy=rand(.16,.62);
-  else if(m==='plane')c.fy=rand(.16,.42);
+  else if(m==='plane'||m==='jet')c.fy=rand(.14,.42);
+  else if(m==='heli')c.fy=rand(.2,.55);
   else if(m==='balloon')c.fy=rand(.22,.62);
   else if(m==='drive'){c.lane=Math.random()<.5?0:1;c.fy=c.lane?.868:.748;c.dir=c.lane?1:-1;}
   else if(m==='walker'){c.walk=Math.random()<.5?0:1;c.fy=c.walk?.972:.628;}
@@ -558,20 +581,25 @@ const ACT={
  roar:{dur:1.6,hold:1,snd:'roar',say:'ガオー！'}, rear:{dur:1.6,hold:1,snd:'roar',say:'ドスーン！'},
  spout:{dur:1.8,hold:1,snd:'splash',say:'ぷしゅー！'}, ink:{dur:1.5,snd:'splash',say:'すみ ぷー！'},
  wheelie:{dur:1.5,snd:'honk',say:'ブッブー！'}, dance:{dur:2.4,hold:1,snd:'dance',say:'ランラン♪'},
- hearts:{dur:1.8,hold:1,snd:'happy',say:'だいすき！'}
+ hearts:{dur:1.8,hold:1,snd:'happy',say:'だいすき！'},
+ siren:{dur:2.8,snd:'police',say:'ウーウー！'}, ladder:{dur:3.4,hold:1,snd:'grow',say:'はしご のびーる！'},
+ heartsky:{dur:3.6,hold:1,snd:'whirl',say:'ハートを かくよ！'}, rainbow:{dur:3.2,snd:'happy',say:'カラースモーク！'}
 };
 const ACTS={1:['dash','spin','jump','jelly','grow','hearts'],2:['spout','grow','spin','jelly','jump'],3:['ink','jelly','spin','grow','dizzy'],
  4:['roar','jump','flip','dizzy','grow','jelly'],5:['rear','jump','dizzy','grow','hearts'],6:['rear','spout','jump','dizzy','grow'],
  7:['loop','spin','dash','grow','hearts'],8:['loop','spin','dash','grow'],9:['rise','spin','jelly','grow'],
- 10:['wheelie','jump','dash','flip','grow'],11:['wheelie','jump','dash','jelly','grow'],12:['dance','flip','jump','dizzy','hearts','grow']};
-const SAYS={2:{spout:'ぷしゅー！'},5:{rear:'ドスーン！'},6:{rear:'パオーン！',spout:'シャワー！'},11:{wheelie:'プップー！'}};
+ 10:['wheelie','jump','dash','flip','grow'],11:['wheelie','jump','dash','jelly','grow'],12:['dance','flip','jump','dizzy','hearts','grow'],
+ 13:['siren','wheelie','dash','jump','flip'],14:['ladder','siren','jump','dash','wheelie'],15:['siren','dash','jump','jelly','wheelie'],
+ 16:['rise','spin','dizzy','dash','grow'],17:['heartsky','loop','rainbow','spin']};
+const SND={14:{siren:'fire'},15:{siren:'ambulance'}};
+const SAYS={2:{spout:'ぷしゅー！'},5:{rear:'ドスーン！'},6:{rear:'パオーン！',spout:'シャワー！'},11:{wheelie:'プップー！'},14:{siren:'ウーウー カンカン！'},15:{siren:'ピーポー ピーポー！'},16:{dizzy:'ぐるぐる〜',rise:'ぐーんと じょうしょう！'},17:{loop:'くるりん！'}};
 const SPOUT={2:[150,28],6:[173,114]};
 const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
 
 function surprise(c){
   const list=ACTS[c.t_.id]||['jump','spin'];let k;do{k=list[Math.random()*list.length|0];}while(list.length>1&&k===c.lastAct);
-  c.lastAct=k;const d=ACT[k];c.act={k,t:0,dur:d.dur,say:(SAYS[c.t_.id]&&SAYS[c.t_.id][k])||d.say,em:0,done:{}};
-  play(d.snd);
+  c.lastAct=k;const d=ACT[k];const sndK=(SND[c.t_.id]&&SND[c.t_.id][k])||d.snd;c.act={k,t:0,dur:d.dur,say:(SAYS[c.t_.id]&&SAYS[c.t_.id][k])||d.say,em:0,done:{}};
+  play(sndK);
   if(k==='spin'||k==='grow'||k==='flip')burst(c.x,c.hit?c.hit.y+c.hit.h/2:c.fy*H,'land',false);
   if(k==='roar')state.shake=.6;
   if(k==='rise')c.fy=Math.max(.3,c.fy);
@@ -588,6 +616,10 @@ function update(c,dt){
     if(a.k==='dash')mul=p<.15?.2:6*(1-p)+1;
     if(a.k==='ink'&&p>.25)mul=5*(1-p)+1;
     if(a.k==='wheelie')mul=2.2;
+    if(a.k==='siren')mul=2.4;
+    if(a.k==='ladder'){const env=p<.3?ease(p/.3):p>.8?1-ease((p-.8)/.2):1;c.ladderA=.95*env;
+      if(env>.9&&a.em>.03){a.em=0;const A=c.ladderA,px=22+128*Math.cos(A),py=19-128*Math.sin(A);const [wx,wy]=worldPt(c,px,py);state.fx.push({kind:'drop',x:wx,y:wy,vx:c.dir*rand(120,220),vy:-rand(60,200),life:1.3,r:rand(3,6)});}}
+    if(a.k==='siren'&&a.em>.06&&m==='drive'){a.em=0;const [ex,ey]=worldPt(c,2,t.h*.72);state.fx.push({kind:'dust',x:ex,y:ey,vx:-c.dir*rand(40,90),vy:-rand(10,40),life:.8,r:rand(5,10)});}
     // 演出の粒
     a.em+=dt;
     if(a.k==='spout'&&p<.75&&SPOUT[t.id]){while(a.em>.025){a.em-=.025;const [sx,sy]=worldPt(c,...SPOUT[t.id]);state.fx.push({kind:'drop',x:sx,y:sy,vx:rand(-90,90)+c.dir*(t.id===6?120:0),vy:-rand(320,520)*(baseSize()/800),life:1.4,r:rand(3,6)});}}
@@ -597,7 +629,7 @@ function update(c,dt){
     if(a.k==='rear'&&p>.82&&!a.done.st){a.done.st=1;state.shake=.5;const h=c.hit;if(h)for(let i=0;i<14;i++)state.fx.push({kind:'dust',x:h.x+h.w*rand(.1,.9),y:h.y+h.h,vx:rand(-120,120),vy:-rand(20,90),life:1,r:rand(6,14)});play('thud');}
     if((a.k==='dash'||a.k==='wheelie')&&(m==='drive')&&a.em>.06){a.em=0;const [ex,ey]=worldPt(c,2,t.h*.72);state.fx.push({kind:'dust',x:ex,y:ey,vx:-c.dir*rand(40,90),vy:-rand(10,40),life:.8,r:rand(5,10)});}
     if(a.k==='dash'&&m==='swim'&&a.em>.05){a.em=0;const [bx,by]=worldPt(c,4,t.h*.5);state.fx.push({kind:'bubble',x:bx,y:by,vx:-c.dir*rand(20,60),vy:-rand(20,60),life:1,r:rand(3,7)});}
-    if(a.t>=a.dur)c.act=null;}
+    if(a.t>=a.dur){c.act=null;c.ladderA=0;}}
   const sp=c.speed*(1+c.boost*2.2)*(baseSize()/800)*mul;
   if(!hold)c.x+=c.dir*sp*dt;
   const off=sz*.7;
@@ -605,13 +637,15 @@ function update(c,dt){
   else if(c.dir>0&&c.x>W+off||c.dir<0&&c.x<-off){c.dir*=-1;if(m!=='walker')spawnBand(c);}
   const legRate=(m==='walk'||m==='walker')?(hold?(a&&a.k==='dance'?9:0):sp/(sz*.16)):m==='fly'?9*(1+c.boost)*(a&&a.k==='loop'?1.6:1):0;
   c.ph+=dt*legRate;
-  if(m==='plane'){const [tx,ty]=worldPt(c,10,48);c.trail.push({x:tx,y:ty,a:1});c.trail.forEach(p=>p.a-=dt*.45);c.trail=c.trail.filter(p=>p.a>0);}
+  if(m==='heli')c.rotor=(c.rotor||0)+dt*26;
+  if(m==='plane'||m==='jet'){const [tx,ty]=worldPt(c,t.tail[0],t.tail[1]);const rb=a&&a.k==='rainbow';c.trail.push({x:tx,y:ty,a:1,c:rb?CRAYON[(Math.floor(c.t*6))%CRAYON.length]:null});const fade=m==='jet'?.26:.45;c.trail.forEach(p=>p.a-=dt*fade);c.trail=c.trail.filter(p=>p.a>0);}
 }
 function posY(c){const t=c.t_,m=t.motion;const base=c.fy*H;
   if(m==='swim')return base+Math.sin(c.t*.8+c.ph)*H*.03;
   if(m==='octo')return base+Math.sin(c.t*.6)*H*.06;
   if(m==='fly')return base+Math.sin(c.t*1.3)*H*.04;
-  if(m==='plane')return base+Math.sin(c.t*.4)*10;
+  if(m==='plane'||m==='jet')return base+Math.sin(c.t*.4)*10;
+  if(m==='heli')return base+Math.sin(c.t*1.1)*H*.025;
   if(m==='balloon')return base+Math.sin(c.t*.5)*H*.03;
   return base;}
 
@@ -626,6 +660,8 @@ function pose(c,sz){const o={dx:0,dy:0,rot:0,sx:1,sy:1};const a=c.act;if(!a)retu
   case 'dash':{if(p<.15){o.sx=1-.15*S(p/.15*P);o.sy=1+.1*S(p/.15*P);}else{o.sx=1.18;o.sy=.9;}break;}
   case 'ink':{if(p<.25){const q=S(p/.25*P);o.sx=1+.25*q;o.sy=1-.2*q;}break;}
   case 'loop':{const g=ease(p)*P*2,R=sz*.9;o.dx=c.dir*R*S(g);o.dy=-R*(1-Math.cos(g));o.rot=-g;break;}
+  case 'heartsky':{const R=sz*1.1;const hp=q=>{const u=q*P*2;return [16*Math.pow(S(u),3),-(13*Math.cos(u)-5*Math.cos(2*u)-2*Math.cos(3*u)-Math.cos(4*u))];};const q=ease(p);const [hx,hy]=hp(q),[hx2,hy2]=hp(Math.min(1,q+.004));o.dx=c.dir*R*hx/16;o.dy=R*(hy+5)/16;const vx=c.dir*(hx2-hx),vy=hy2-hy;const th=Math.atan2(vy,vx);o.rot=(Math.abs(vx)+Math.abs(vy)<1e-6)?0:(c.dir>0?th:P-th);break;}
+  case 'siren':{o.sy=1+.03*S(p*60);break;}
   case 'rise':{o.dy=-H*.28*S(p*P);o.rot=S(p*P*6)*.08;break;}
   case 'roar':{const env=S(Math.min(1,p*3)*P/2)*(1-Math.max(0,(p-.75)/.25));o.sx=o.sy=1+.2*env;o.dx=S(p*90)*3*env;o.rot=-.12*env;break;}
   case 'rear':{const env=p<.8?S(p/.8*P/2):1-(p-.8)/.2;o.rot=-.42*env;o.piv=1;break;}
@@ -645,12 +681,13 @@ function drawCreature(c,T){
   if(m==='swim')rot=Math.cos(c.t*.8+c.ph)*.12;
   if(m==='octo')sy=1+Math.sin(c.t*3)*.04;
   if(m==='fly')rot=Math.cos(c.t*1.3)*.14;
-  if(m==='plane')rot=-Math.cos(c.t*.4)*.04;
+  if(m==='plane'||m==='jet')rot=-Math.cos(c.t*.4)*.04;
+  if(m==='heli')rot=.08+Math.sin(c.t*1.1)*.04;
   if(m==='balloon')rot=Math.sin(c.t*.8)*.06;
   if((m==='walk'||m==='walker')&&!(c.act&&ACT[c.act.k].hold))bob=-Math.abs(Math.sin(c.ph))*sz*(m==='walker'?.05:.02);
   if(m==='drive')bob=Math.sin(c.t*22)*.8;
-  let prot=0;if(c.act){if(pz.piv){prot=pz.rot;}else rot=pz.rot+(c.act.k==='loop'||c.act.k==='spin'||c.act.k==='flip'?0:rot);}
-  if(m==='plane'&&c.trail.length>1){ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineCap='round';for(let i=1;i<c.trail.length;i++){const a=c.trail[i-1],b=c.trail[i];ctx.globalAlpha=b.a*.8;ctx.lineWidth=sz*.035*b.a;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}ctx.globalAlpha=1;}
+  let prot=0;if(c.act){if(pz.piv){prot=pz.rot;}else rot=pz.rot+(c.act.k==='loop'||c.act.k==='heartsky'||c.act.k==='spin'||c.act.k==='flip'?0:rot);}
+  if((m==='plane'||m==='jet')&&c.trail.length>1){ctx.lineCap='round';const tw=m==='jet'?.07:.035;for(let i=1;i<c.trail.length;i++){const a=c.trail[i-1],b=c.trail[i];ctx.strokeStyle=b.c||'rgba(255,255,255,.85)';ctx.globalAlpha=b.a*.8;ctx.lineWidth=sz*tw*(.4+.6*b.a);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}ctx.globalAlpha=1;}
   if(ground){const lift=Math.min(.6,-pz.dy/(sz*1.5));ctx.fillStyle=`rgba(0,0,0,${.16*(1-lift)})`;ctx.beginPath();ctx.ellipse(c.x+pz.dx,y,sz*.42*(1-lift*.6),sz*.05,0,0,7);ctx.fill();}
   // スピード線
   if(c.act&&(c.act.k==='dash'&&c.act.t/c.act.dur>.15||c.act.k==='ink'&&c.act.t/c.act.dur>.25||c.act.k==='wheelie')&&c.hit){const h=c.hit;ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineCap='round';ctx.lineWidth=3;
@@ -666,7 +703,9 @@ function drawCreature(c,T){
   const drawPart=p=>{const pc=p.piece;let a=0;
     if(p.kind==='leg'||p.kind==='arm'){if(c.act&&c.act.k==='dizzy')a=Math.sin(c.t*14+p.off)*p.amp*P/180;else if(c.act&&(c.act.k==='roar'||c.act.k==='hearts'||c.act.k==='rear'))a=(p.kind==='arm'?-1:.3)*Math.sin(c.act.t*25+p.off)*p.amp*P/180;else a=walking&&!(hold&&!(c.act.k==='dance'))?Math.sin(c.ph+p.off)*p.amp*P/180*(c.act&&c.act.k==='dance'?1.6:1):Math.sin(c.t*2+p.off)*p.amp*P/360;}
     else if(p.kind==='wing')a=-(.5+.5*Math.sin(c.ph))*p.amp*P/180;
-    else if(p.kind==='spin')a=c.wheel;
+    else if(p.kind==='spin')a=m==='heli'?c.rotor*1.4:c.wheel;
+    else if(p.kind==='ladder')a=-(c.ladderA||0);
+    if(p.kind==='rotor'){ctx.save();ctx.translate(p.pivot[0],p.pivot[1]);ctx.scale(.2+.8*Math.abs(Math.cos(c.rotor||0)),1);ctx.translate(-p.pivot[0],-p.pivot[1]);ctx.drawImage(pc.cv,pc.x,pc.y,pc.w,pc.h);ctx.restore();return;}
     ctx.save();ctx.translate(p.pivot[0],p.pivot[1]);ctx.rotate(a);ctx.translate(-p.pivot[0],-p.pivot[1]);ctx.drawImage(pc.cv,pc.x,pc.y,pc.w,pc.h);ctx.restore();};
   c.p.parts.filter(p=>p.z==='back').forEach(drawPart);
   const b=c.p.body;const fast=c.act&&(c.act.k==='dash'||c.act.k==='ink')?2.2:1;
@@ -674,6 +713,7 @@ function drawCreature(c,T){
   else if(t.deform==='tentacle'){const n=24,cw=b.cv.width,ch=b.cv.height;for(let i=0;i<n;i++){const sy0=i*ch/n,sh=ch/n+1.5;const ly=b.y+(i/n)*b.h;const k=Math.max(0,(ly/t.h-.55)/.45);const dx=7*fast*Math.pow(k,1.3)*Math.sin(c.t*3*fast-ly*.09);ctx.drawImage(b.cv,0,sy0,cw,Math.min(sh,ch-sy0),b.x+dx,ly,b.w,Math.min(sh,ch-sy0)/ch*b.h);}}
   else ctx.drawImage(b.cv,b.x,b.y,b.w,b.h);
   c.p.parts.filter(p=>p.z!=='back').forEach(drawPart);
+  if(c.act&&c.act.k==='siren'&&t.light){const on=Math.floor(c.act.t*8)%2;const [lx,ly]=t.light;for(let k=0;k<2;k++){const gx=lx+(k?7:-7);const g=ctx.createRadialGradient(gx,ly,0,gx,ly,26);const al=(k===on)?.9:.25;g.addColorStop(0,`rgba(255,60,50,${al})`);g.addColorStop(1,'rgba(255,60,50,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(gx,ly,26,0,7);ctx.fill();}}
   ctx.restore();
   const hw=sz*pz.sx*e,hh=t.h*u*pz.sy*e;const cy0=ground?y+pz.dy-hh:y+pz.dy-hh/2;
   c.hit={x:c.x+pz.dx-hw/2,y:cy0,w:hw,h:hh};
@@ -725,6 +765,9 @@ function play(k){if(!soundOn)return;try{switch(k){
   case 'honk':tone(420,400,.14,'square',.1);tone(420,400,.18,'square',.1,.2);break;
   case 'dance':[523,659,784,1047].forEach((f,i)=>tone(f,f,.14,'triangle',.15,i*.14));break;
   case 'happy':tone(660,990,.15,'sine',.18);tone(880,1320,.2,'sine',.18,.16);break;
+  case 'police':[0,.7,1.4].forEach(d=>{tone(520,900,.35,'sine',.13,d);tone(900,520,.35,'sine',.13,d+.35);});break;
+  case 'ambulance':[0,.6,1.2,1.8].forEach(d=>{tone(960,960,.28,'square',.06,d);tone(770,770,.28,'square',.06,d+.3);});break;
+  case 'fire':[0,.7,1.4].forEach(d=>{tone(520,900,.35,'sine',.12,d);tone(900,520,.35,'sine',.12,d+.35);});[0,.25,.5,.75].forEach(d=>tone(1800,1700,.12,'triangle',.08,d));break;
 }}catch(e){}}
 
 /* ---------- ループ ---------- */
