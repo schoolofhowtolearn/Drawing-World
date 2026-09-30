@@ -177,13 +177,14 @@ video{width:100%;border-radius:14px;background:#000;display:block}
   <div class="card">
     <div class="card-head"><h2>ぬりえ ようし（20しゅるい）</h2><button class="close" data-close aria-label="とじる">×</button></div>
     <p class="lead">A4で印刷して使います。四すみの黒い四角と、下にある小さな四角の列（コード）で、どの用紙かを自動で見分けます。この2か所はぬらないように伝えてください。用紙をクリックすると、その用紙のPDFが開きます。</p>
-    <a class="btn ghost sheet-all" href="sheets/all.pdf" target="_blank" rel="noopener">ぜんぶ まとめて ひらく（PDF・20まい）</a>
+    <a class="btn ghost sheet-all" id="sheetAll" href="sheets/all.pdf" target="_blank" rel="noopener">ぜんぶ まとめて ひらく（PDF・20まい）</a>
     <div class="gallery" id="gallery"></div>
   </div>
 </div>
 
 <div id="printSheets" aria-hidden="true"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 (() => {
 'use strict';
@@ -885,7 +886,31 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 
 /* ぬりえ用紙ギャラリー & 印刷用 */
 const gallery=document.getElementById('gallery'),printEl=document.getElementById('printSheets');
-TPL.forEach(t=>{const a=document.createElement('a');a.href=sheetFile(t);a.target='_blank';a.rel='noopener';a.setAttribute('aria-label',`${t.name}の ぬりえようし（PDF）を ひらく`);a.innerHTML=`<figure>${sheetSVG(t)}<figcaption><span class="chip" style="--c:${SCENES[t.scene].c}">${SCENES[t.scene].label}</span>${t.name}<span class="open">PDF</span></figcaption></figure>`;gallery.appendChild(a);printEl.insertAdjacentHTML('beforeend',sheetSVG(t));});
+TPL.forEach(t=>{const a=document.createElement('a');a.href=sheetFile(t);a.target='_blank';a.rel='noopener';a.setAttribute('aria-label',`${t.name}の ぬりえようし（PDF）を ひらく`);a.innerHTML=`<figure>${sheetSVG(t)}<figcaption><span class="chip" style="--c:${SCENES[t.scene].c}">${SCENES[t.scene].label}</span>${t.name}<span class="open">PDF</span></figcaption></figure>`;a.addEventListener('click',e=>openSheetPdf(e,[t],`nurie-${String(t.id).padStart(2,'0')}-${FILE_KEYS[t.id]}.pdf`));gallery.appendChild(a);printEl.insertAdjacentHTML('beforeend',sheetSVG(t));});
+document.getElementById('sheetAll').addEventListener('click',e=>openSheetPdf(e,TPL,'nurie-all.pdf'));
+
+/* ぬりえ用紙PDFをその場で作る */
+function svgImage(svg){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);});}
+async function makeSheetPdf(list){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'a4',compress:true});
+  const cv=mkCanvas(1654,2339),x=cv.getContext('2d');
+  for(let i=0;i<list.length;i++){const im=await svgImage(sheetSVG(list[i]));x.fillStyle='#fff';x.fillRect(0,0,cv.width,cv.height);x.drawImage(im,0,0,cv.width,cv.height);
+    if(i)doc.addPage();doc.addImage(cv,'PNG',0,0,210,297,undefined,'FAST');}
+  return doc.output('blob');
+}
+let pdfBusy=false;
+async function openSheetPdf(e,list,name){
+  if(!window.jspdf)return; // ライブラリが読めないときは sheets/ のPDFへ
+  e.preventDefault();if(pdfBusy)return;pdfBusy=true;
+  const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  let w=null;if(!mobile){try{w=window.open('','_blank');if(w)w.document.write('<p style="font:16px sans-serif;padding:24px">PDFを つくっています…</p>');}catch(err){w=null;}}
+  toast(list.length>1?'PDFを つくっています…（すこし まってね）':'PDFを つくっています…');
+  try{const blob=await makeSheetPdf(list);const url=URL.createObjectURL(blob);
+    if(w){w.location.href=url;}else{const a=document.createElement('a');a.href=url;a.download=name;a.target='_blank';document.body.appendChild(a);a.click();a.remove();}
+    setTimeout(()=>URL.revokeObjectURL(url),60000);toast('PDFが できたよ');}
+  catch(err){if(w)w.close();toast('PDFを つくれませんでした');}
+  finally{pdfBusy=false;}
+}
 document.getElementById('btnSheets').addEventListener('click',()=>openModal('sheetModal'));
 
 /* ---------- 読み込み ---------- */
@@ -956,6 +981,6 @@ setScene(startScene);
 TPL.forEach(t=>addCreature(t,cutPieces(t,coloredSource(t)),{demo:true}));
 requestAnimationFrame(frame);
 
-window.OE={sheetFile,surprise,TPL,TPL_BY_ID,sheetSVG,analyze,homography,applyH,MARK,addCreature,cutPieces,scannedSource,setScene,state,fromSource};
+window.OE={makeSheetPdf,sheetFile,surprise,TPL,TPL_BY_ID,sheetSVG,analyze,homography,applyH,MARK,addCreature,cutPieces,scannedSource,setScene,state,fromSource};
 })();
 </script>
