@@ -77,7 +77,13 @@ select{font:700 16px var(--font);padding:10px 12px;border-radius:12px;border:2px
 .row .btn{box-shadow:none}
 video{width:100%;border-radius:14px;background:#000;display:block}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.gallery a{color:inherit;text-decoration:none;border-radius:10px;display:block}
+.gallery a:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 .gallery figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.gallery a svg{transition:transform .15s,box-shadow .15s}
+.gallery a:hover svg{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.gallery .open{margin-left:auto;font-size:12px;font-weight:700;color:var(--blue);white-space:nowrap}
+.sheet-all{align-self:flex-start;text-decoration:none}
 .gallery svg{width:100%;height:auto;background:#fff;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
 .gallery figcaption{font-weight:700;font-size:14px;display:flex;gap:6px;align-items:center}
 .chip{white-space:nowrap;flex:none;font-size:11px;color:#fff;padding:3px 8px;border-radius:99px;background:var(--c)}
@@ -170,7 +176,8 @@ video{width:100%;border-radius:14px;background:#000;display:block}
 <div class="modal" id="sheetModal" hidden>
   <div class="card">
     <div class="card-head"><h2>ぬりえ ようし（20しゅるい）</h2><button class="close" data-close aria-label="とじる">×</button></div>
-    <p class="lead">A4で印刷して使います。四すみの黒い四角と、下にある小さな四角の列（コード）で、どの用紙かを自動で見分けます。この2か所はぬらないように伝えてください。印刷には「ぬりえ用紙PDF」をお使いください。</p>
+    <p class="lead">A4で印刷して使います。四すみの黒い四角と、下にある小さな四角の列（コード）で、どの用紙かを自動で見分けます。この2か所はぬらないように伝えてください。用紙をクリックすると、その用紙のPDFが開きます。</p>
+    <a class="btn ghost sheet-all" href="sheets/all.pdf" target="_blank" rel="noopener">ぜんぶ まとめて ひらく（PDF・20まい）</a>
     <div class="gallery" id="gallery"></div>
   </div>
 </div>
@@ -282,6 +289,8 @@ const TPL=[
   parts:[{d:['M132.0,11.0L143.2,39.6L173.8,41.4L150.1,60.9L157.9,90.6L132.0,74.0L106.1,90.6L113.9,60.9L90.2,41.4L120.8,39.6Z'],pivot:[132,55],kind:'spin',z:'front'}],
   details:['M96,50C64,46 38,42 16,42','M98,62C64,66 40,70 18,74','M124,62Q132,68 140,62'],dots:[[124,52,3],[140,52,3]]}
 ];
+const FILE_KEYS={1:'fish',2:'whale',3:'octopus',4:'trex',5:'longneck',6:'elephant',7:'bird',8:'airplane',9:'balloon',10:'car',11:'bus',12:'person',13:'police-car',14:'fire-truck',15:'ambulance',16:'helicopter',17:'blue-impulse',18:'rocket',19:'ufo',20:'shooting-star'};
+const sheetFile=t=>`sheets/${String(t.id).padStart(2,'0')}-${FILE_KEYS[t.id]}.pdf`;
 const TPL_BY_ID={};TPL.forEach(t=>TPL_BY_ID[t.id]=t);
 const SCENES={sea:{label:'うみ',c:'#1a7fc0'},land:{label:'りく',c:'#4e9f3d'},sky:{label:'そら',c:'#3d9bf5'},city:{label:'まち',c:'#e8783a'},space:{label:'うちゅう',c:'#5b4bd6'}};
 const SCENE_KEYS=['sea','land','sky','city','space'];
@@ -876,7 +885,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 
 /* ぬりえ用紙ギャラリー & 印刷用 */
 const gallery=document.getElementById('gallery'),printEl=document.getElementById('printSheets');
-TPL.forEach(t=>{const f=document.createElement('figure');f.innerHTML=sheetSVG(t)+`<figcaption><span class="chip" style="--c:${SCENES[t.scene].c}">${SCENES[t.scene].label}</span>${t.name}</figcaption>`;gallery.appendChild(f);printEl.insertAdjacentHTML('beforeend',sheetSVG(t));});
+TPL.forEach(t=>{const a=document.createElement('a');a.href=sheetFile(t);a.target='_blank';a.rel='noopener';a.setAttribute('aria-label',`${t.name}の ぬりえようし（PDF）を ひらく`);a.innerHTML=`<figure>${sheetSVG(t)}<figcaption><span class="chip" style="--c:${SCENES[t.scene].c}">${SCENES[t.scene].label}</span>${t.name}<span class="open">PDF</span></figcaption></figure>`;gallery.appendChild(a);printEl.insertAdjacentHTML('beforeend',sheetSVG(t));});
 document.getElementById('btnSheets').addEventListener('click',()=>openModal('sheetModal'));
 
 /* ---------- 読み込み ---------- */
@@ -947,6 +956,6 @@ setScene(startScene);
 TPL.forEach(t=>addCreature(t,cutPieces(t,coloredSource(t)),{demo:true}));
 requestAnimationFrame(frame);
 
-window.OE={surprise,TPL,TPL_BY_ID,sheetSVG,analyze,homography,applyH,MARK,addCreature,cutPieces,scannedSource,setScene,state,fromSource};
+window.OE={sheetFile,surprise,TPL,TPL_BY_ID,sheetSVG,analyze,homography,applyH,MARK,addCreature,cutPieces,scannedSource,setScene,state,fromSource};
 })();
 </script>
