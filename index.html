@@ -727,7 +727,7 @@ function climbUpdate(c,dt,sp,hold){
 function battleUpdate(list,dt){
   const free=c=>c.t_.motion==='climb'&&!c.bt&&!c.fl&&!c.act&&c.enter>=1&&(c.bcd||0)<=0;
   // 同じ木にいるカブトとクワガタを組にする
-  list.filter(c=>c.t_.id===21&&free(c)).forEach(a=>{const b=list.find(k=>k.t_.id===22&&free(k)&&k.trunk===a.trunk);if(!b)return;
+  list.filter(c=>free(c)).forEach(a=>{if(!free(a))return;const b=list.find(k=>k!==a&&free(k)&&k.trunk===a.trunk);if(!b)return;
     const aTop=a.fy<=b.fy;const meet=Math.min(.5,Math.max(.27,(a.fy+b.fy)/2));
     a.bt={foe:b,lead:true,ph:'go',t:0,top:aTop,meet,pow:0};b.bt={foe:a,lead:false,ph:'go',t:0,top:!aTop,meet,pow:0};
     a.say={text:'しょうぶだ！',t:1.2};});
